@@ -1,0 +1,29 @@
+General: Tasks seem to correspond to two general approaches: Collaborative filerting and NN (baseline) approach
+Task 1 is needed for both approaches
+Task 2, 3 (and maybe 4?) belongs to CF approach
+Task 5 is NN approach
+
+Question:
+- different recommendation approaches --> Is this still necessary? Or just implement baseline and optimize?!?!
+
+CF approach:
+Need to apply filtering approach and evaluate performance
+
+
+NN approach:
+
+Ideas:
+- Use without CV to use training, test, validation split ?
+- Try to predict more than one type of interaction at a time -> output layer has dim 4, thus, change activation of output layer from 'relu' to 'softmax'
+- Use social network data (from task 4) as additional attributes for NN model???
+
+Parameters to vary for NN approach:
+- Vary number of components in dimensionality reduction
+- Type of dimensionality reduction
+- Method of feature selection (Fisher Information etc)
+- Type of training dataset (10000 rows by user or by tweet)
+- NN model parameters
+
+WHAT IS MEANT BY THIS? (in forum post of task 5)
+x Include the embedding into the neural net, so the embedding is also learned
+x Change the embedding size (maybe 32 bit for each type?)
