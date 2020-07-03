@@ -29,10 +29,70 @@ t = 4
 traindata = cbind(training, clust$cluster, timestamps[sample, t])
 #Training model
 #kesas tensorflow model...
+# Libraries
+library(keras)
+library(mlbench) 
+library(dplyr)
+library(magrittr)
+
+# Matrix
+data = traindata
+
+data <- as.matrix(data)
+dimnames(data) <- NULL
+
+# Partition
+training <- data[,1:(ncol(data)-1)]
+trainingtarget <- data[,(ncol(data))]
+
+# Normalize
+m <- colMeans(training)
+s <- apply(training, 2, sd)
+training <- scale(training, center = m, scale = s)
+
+# Create Model
+model <- keras_model_sequential()
+model %>% 
+  layer_dense(units = 5, activation = 'relu', input_shape = (ncol(data)-1)) %>%
+  layer_dense(units = 1)
+
+# Compile
+model %>% compile(loss = 'mse',
+                  optimizer = 'rmsprop',
+                  metrics = 'mae')
+
+# Fit Model
+mymodel <- model %>%
+  fit(training,
+      trainingtarget,
+      epochs = 100,
+      batch_size = 32,
+      validation_split = 0.2)
 
 #Testing mddel
 test_clustmem = as.numeric(cl_predict(clust, newdata = test))
 testdata = cbind(test, test_clustmem, timestamps[-sample, t])
+
+data = testdata
+
+data <- as.matrix(data)
+dimnames(data) <- NULL
+
+# Partition
+test <- data[,1:(ncol(data)-1)]
+testtarget <- data[,(ncol(data))]
+
+# Normalize
+m <- colMeans(training)
+s <- apply(training, 2, sd)
+test <- scale(test, center = m, scale = s)
+
+# Evaluate
+model %>% evaluate(test, testtarget)
+pred <- model %>% predict(test)
+mean((testtarget-pred)^2)
+plot(testtarget, pred)
+
 
 #predict with keras tensorflow model...
 
