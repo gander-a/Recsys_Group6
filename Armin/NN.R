@@ -1,7 +1,3 @@
-library(clue)
-library(MLmetrics)
-library(scales)
-
 setwd("C:/Users/Armin/Desktop/Data Science/Recsys_Group6/Armin")
 train <- read.csv("C:/Users/Armin/Desktop/Data Science/Recsys_Group6/Armin/dataset_users.csv")
 
@@ -17,51 +13,33 @@ data = data[,-which(names(data) %in% ids)]
 
 #Create train and test set
 set.seed(666)
-sample <- sample.int(n = nrow(input), size = floor(.75*nrow(input)), replace = F)
+sample <- sample.int(n = nrow(data), size = floor(.75*nrow(data)), replace = F)
 training <- data[sample, ]
 test  <- data[-sample, ]
 
 para = c(10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000)
 summary = matrix(NA, 1, length(para))
-for (i in 1:length(para)) {
+# for (i in 1:length(para)) {
   
 #Clustering
-buckets = para[i]
+buckets = 100#para[i]
 clust = kmeans(training, buckets)
 
 t = 4
-input_train = cbind(clust$cluster, data_ids$tweet_id[sample], timestamps[sample,c(t)])
-colnames(input_train) = c("user", "item", "rating")
-input_train = as.data.frame(input_train)
+traindata = cbind(training, clust$cluster, timestamps[sample, t])
+#Training model
+#kesas tensorflow model...
 
-#Recosystem Training
-train_data = data_memory(user_index = input_train$user, item_index = input_train$item, rating = input_train$rating)
-
-r = Reco()
-opts_tune = r$tune(train_data, opts = list(dim = c(10L, 20L),
-                               costp_l1 = c(0, 0.1),
-                               costp_l2 = c(0.01, 0.1),
-                               costq_l1 = c(0, 0.1),
-                               costq_l2 = c(0.01, 0.1),
-                               lrate = c(0.01, 0.1))
-)
-
-r$train(train_data, opts = c(opts_tune$min, nthread = 1, niter = 20))
-
-#Recosystem Testing
+#Testing mddel
 test_clustmem = as.numeric(cl_predict(clust, newdata = test))
+testdata = cbind(test, test_clustmem, timestamps[-sample, t])
 
-input_test = cbind(test_clustmem, data_ids$tweet_id[-sample], timestamps[-sample,c(t)])
-colnames(input_test) = c("user", "item", "rating")
-input_test = as.data.frame(input_test)
+#predict with keras tensorflow model...
 
-test_data = data_memory(user_index = input_test$user, item_index = input_test$item, rating = input_test$rating)
-
-pred = r$predict(test_data, out_memory())
-
-summary[i]=PRAUC(pred, input_test$rating)
+summary[i]=PRAUC(pred, traindata$`timestamps[sample, t]`)
 print(summary[i])
-}
+
+#}
 
 #summary (like) 0.6467923 0.6562013 0.7150864 0.7440281 0.7501865 0.7512185 0.7697835 0.771053 0.76992 0.768791 
 res_like = c(0.6578693, 0.7084555, 0.695253, 0.739171, 0.7526509, 0.7643586, 0.7618109, 0.7680769, 0.7686715, 0.7689876)
